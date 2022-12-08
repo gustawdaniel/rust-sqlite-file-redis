@@ -52,13 +52,11 @@ mod tests {
 }
 
 fn build_tree(tree: &mut Vec<String>, lines: &Vec<String>, len: usize) -> Result<(), Error> {
-
-
     if len == 0 {
         return Ok(());
     }
 
-    let power= len.log2();
+    let power= (len as f32).log2() as i32;
     let index = (1 << power) - 1;
     // println!("P {:?}", power);
     // println!("I {:?}", index);
