@@ -2,9 +2,20 @@
 name = "rust-sqlite-file-redis"
 version = "0.1.0"
 edition = "2021"
+default-run = "rust-sqlite-file-redis"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 
+[[bin]]
+name = "rust-sqlite-file-redis"
+path = "src/main.rs"
 
+[[bin]]
+name = "prepare-tree"
+test = false
+bench = false
+
+[[example]]
+name = "rs1" # examples/boolean.rs
