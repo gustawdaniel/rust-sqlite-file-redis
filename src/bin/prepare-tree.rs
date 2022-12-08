@@ -58,7 +58,7 @@ fn build_tree(tree: &mut Vec<String>, lines: &Vec<String>, len: usize) -> Result
         return Ok(());
     }
 
-    let power= len.ilog2();
+    let power= len.log2();
     let index = (1 << power) - 1;
     // println!("P {:?}", power);
     // println!("I {:?}", index);

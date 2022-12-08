@@ -1,5 +1,3 @@
-#![feature(iter_advance_by)]
-
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Lines, Read};
@@ -152,7 +150,7 @@ fn find_using_split_in_lines<R: Read>(word: &str, lines: &mut Lines<BufReader<R>
     // println!("l2 {:?}",lines);
 
     let mut index = 0;
-    let mut power = size.ilog2();
+    let mut power = size.log2();
     let mut level = power;
     let mut position = 0;
     let mut counter = 1;
@@ -187,7 +185,7 @@ fn find_using_split_in_lines<R: Read>(word: &str, lines: &mut Lines<BufReader<R>
 
         position += index + 1;
 
-        let base = if size - position - 1 > 0 { (size - position - 1).ilog2() } else { 0 };
+        let base = if size - position - 1 > 0 { (size - position - 1).log2() } else { 0 };
 
         // println!("posi = {}", position);
         // println!("base {}", base);
