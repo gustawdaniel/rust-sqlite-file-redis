@@ -10,13 +10,24 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  unit:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
     - name: Build
       run: cargo build --verbose
-    - name: Run tests
+    - name: Run tests on main
       run: cargo test --verbose
+    - name: Run tests on prepare-tree
+      run: cargo test --bin prepare-tree
+
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install shunit
+      run: sudo apt install -y shunit2
+    - name: Test with shunit
+      run: ./build_tree_test.sh
