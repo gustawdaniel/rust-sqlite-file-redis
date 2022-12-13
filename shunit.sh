@@ -45,5 +45,10 @@ testMem() {
   assertEquals "false" "$(METHOD="mem" cargo run -- 6 5 | tail -n 1)"
 }
 
+testMem() {
+  assertEquals "true" "$(METHOD="sqlite" cargo run -- 5 5 | tail -n 1)"
+  assertEquals "false" "$(METHOD="sqlite" cargo run -- 6 5 | tail -n 1)"
+}
+
 # Load shUnit2.
 . /usr/share/shunit2/shunit2

@@ -6,6 +6,7 @@ use std::string::ToString;
 use std::cmp::{Ordering, min};
 use rust_sqlite_file_redis::{FilePath, get_file_patch};
 use memmap::Mmap;
+use rusqlite::{Connection};
 
 #[cfg(test)]
 mod tests {
@@ -265,10 +266,23 @@ fn find_using_mem(word: &str, path: String) -> bool {
     res
 }
 
-fn find_using_sqlite(_word: &str, _path: String) -> bool {
+fn find_using_sqlite(word: &str, path: String) -> bool {
+    let conn = Connection::open(path).expect("Can't connect");
+
+    let mut stmt = conn.prepare(
+        "SELECT COUNT(*) FROM words WHERE word=?",
+    ).expect("Can't prepare statement");
+
+    let mut words = stmt.query([word]).expect("Can't query");
+
+    while let Ok(Some(row)) = words.next() {
+        if let Ok(count) = row.get::<usize, bool>(0) {
+            // println!("Found cat {:?}", count);
+            return count
+        }
+    }
     false
 }
-
 
 fn main() {
     let args: Vec<String> = env::args().collect();
