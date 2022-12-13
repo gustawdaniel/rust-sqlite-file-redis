@@ -7,10 +7,6 @@ fn main() {
     let FilePath { text, sqlite, .. } = get_file_patch(None);
     let file = File::open(text).expect("Cant open file");
     let reader = BufReader::new(file);
-    // let lines = buf.map(|l| l.expect("Could not parse line"))
-    //     .collect::<Vec<String>>();
-
-    // println!("{:?}", lines);
 
     let mut conn = Connection::open(sqlite)
         .expect("Can't connect");

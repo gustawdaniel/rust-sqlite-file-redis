@@ -25,9 +25,20 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
 
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - uses: actions/checkout@v3
     - name: Install shunit
       run: sudo apt install -y shunit2 libsqlite3-dev
+    - name: I can connect with redis here
+      run: redis-cli ping
     - name: Test with shunit
       run: ./shunit.sh

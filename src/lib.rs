@@ -15,11 +15,13 @@ fn default_file_name() {
     let args: Vec<String> = env::args().collect();
     if args.len() >= 2 && args[1] == String::from("default_file_name") {
         assert_eq!(get_file_patch(None), FilePath {
+            base: String::from("default_file_name"),
             text: String::from("default_file_name.txt"),
             tree: String::from("default_file_name-tree.txt"),
             tree_meta: String::from("default_file_name-tree.meta"),
             bin: String::from("default_file_name-bin"),
             sqlite: String::from("default_file_name.db"),
+            redis_url: String::from("redis://127.0.0.1/"),
         });
     }
 }
@@ -29,21 +31,25 @@ fn position_out_of_scope() {
     assert_eq!(FILE_BASE_PATCH.to_owned(), "./collins-scrabble-2019");
 
     assert_eq!(get_file_patch(Some(1_000_000usize)), FilePath {
+        base: FILE_BASE_PATCH.to_owned(),
         text: FILE_BASE_PATCH.to_owned() + ".txt",
         tree: FILE_BASE_PATCH.to_owned() + "-tree.txt",
         tree_meta: FILE_BASE_PATCH.to_owned() + "-tree.meta",
         bin: FILE_BASE_PATCH.to_owned() + "-bin",
         sqlite: FILE_BASE_PATCH.to_owned() + ".db",
+        redis_url: String::from("redis://127.0.0.1/"),
     });
 }
 
 #[derive(Debug)]
 pub struct FilePath {
+    pub base: String,
     pub text: String,
     pub tree: String,
     pub tree_meta: String,
     pub bin: String,
     pub sqlite: String,
+    pub redis_url: String,
 }
 
 impl PartialEq for FilePath {
@@ -58,10 +64,12 @@ pub fn get_file_patch(position: Option<usize>) -> FilePath {
     let file_base = if args.len() > position { &args[position] } else { FILE_BASE_PATCH };
 
     FilePath {
+        base: file_base.to_owned(),
         text: file_base.to_owned() + ".txt",
         tree: file_base.to_owned() + "-tree.txt",
         tree_meta: file_base.to_owned() + "-tree.meta",
         bin: file_base.to_owned() + "-bin",
         sqlite: file_base.to_owned() + ".db",
+        redis_url: String::from("redis://127.0.0.1/"), // "redis://127.0.0.1/"
     }
 }

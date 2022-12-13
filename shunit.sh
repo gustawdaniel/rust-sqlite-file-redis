@@ -25,6 +25,12 @@ testBuildSqlite() {
   assertEquals "" "$(sqlite3 5.db "SELECT * FROM words WHERE word='6'")"
 }
 
+testBuildRedis() {
+  cargo run --bin prepare-redis -- 5
+  assertEquals "1" "$(redis-cli SISMEMBER word:5 5)"
+  assertEquals "0" "$(redis-cli SISMEMBER word:5 6)"
+}
+
 testText() {
   assertEquals "true" "$(METHOD="text" cargo run -- 5 5 | tail -n 1)"
   assertEquals "false" "$(METHOD="text" cargo run -- 6 5 | tail -n 1)"
@@ -45,9 +51,14 @@ testMem() {
   assertEquals "false" "$(METHOD="mem" cargo run -- 6 5 | tail -n 1)"
 }
 
-testMem() {
+testSqlite() {
   assertEquals "true" "$(METHOD="sqlite" cargo run -- 5 5 | tail -n 1)"
   assertEquals "false" "$(METHOD="sqlite" cargo run -- 6 5 | tail -n 1)"
+}
+
+testRedis() {
+  assertEquals "true" "$(METHOD="redis" cargo run -- 5 5 | tail -n 1)"
+  assertEquals "false" "$(METHOD="redis" cargo run -- 6 5 | tail -n 1)"
 }
 
 # Load shUnit2.

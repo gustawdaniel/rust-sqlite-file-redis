@@ -6,7 +6,7 @@ use std::string::ToString;
 use std::cmp::{Ordering, min};
 use rust_sqlite_file_redis::{FilePath, get_file_patch};
 use memmap::Mmap;
-use rusqlite::{Connection};
+use redis::Commands;
 
 #[cfg(test)]
 mod tests {
@@ -267,7 +267,7 @@ fn find_using_mem(word: &str, path: String) -> bool {
 }
 
 fn find_using_sqlite(word: &str, path: String) -> bool {
-    let conn = Connection::open(path).expect("Can't connect");
+    let conn = rusqlite::Connection::open(path).expect("Can't connect");
 
     let mut stmt = conn.prepare(
         "SELECT COUNT(*) FROM words WHERE word=?",
@@ -284,6 +284,16 @@ fn find_using_sqlite(word: &str, path: String) -> bool {
     false
 }
 
+fn find_using_redis(word: &str, url: String, base: String) -> bool {
+    let client = redis::Client::open(url).expect("Can't connect");
+    let mut con: redis::Connection = client.get_connection().expect("Connection error");
+    let key = "word:".to_owned() + base.trim();
+
+    let res: bool = con.sismember(&key, word).unwrap();
+
+    res
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let method = &env::var("METHOD").unwrap_or("file".to_string())[..];
@@ -293,7 +303,9 @@ fn main() {
         tree: file_tree_path,
         bin: file_bin_path,
         tree_meta,
-        sqlite: file_sqlite_path
+        sqlite: file_sqlite_path,
+        redis_url,
+        base
     } = get_file_patch(Some(2usize));
 
     let res: bool = match method {
@@ -302,6 +314,7 @@ fn main() {
         "bin" => find_using_bin(args[1].as_str(), file_bin_path),
         "mem" => find_using_mem(args[1].as_str(), file_bin_path),
         "sqlite" => find_using_sqlite(args[1].as_str(), file_sqlite_path),
+        "redis" => find_using_redis(args[1].as_str(), redis_url, base),
         _ => find_using_text(args[1].as_str(), file_path)
     };
 
