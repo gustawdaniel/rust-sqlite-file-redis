@@ -49,12 +49,6 @@ mod tests {
     }
 
     #[test]
-    fn i_log_16777215() {
-        let x:i32 = 16777215;
-        assert_eq!(x.ilog2(), 23);
-    }
-
-    #[test]
     fn cast_log_16777215() {
         let x:i32 = 16777215;
         assert_eq!((x as f64).log2() as i32, 23);
