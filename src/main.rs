@@ -4,8 +4,8 @@ use std::io::{self, BufRead, BufReader, Lines, Read, Seek, SeekFrom};
 use std::path::Path;
 use std::string::ToString;
 use std::cmp::{Ordering, min};
-use std::fmt::Error;
 use rust_sqlite_file_redis::{FilePath, get_file_patch};
+use memmap::Mmap;
 
 #[cfg(test)]
 mod tests {
@@ -138,10 +138,6 @@ fn find_using_text(word: &str, path: String) -> bool {
     false
 }
 
-trait NthIterator {
-    fn nth(&self, index: usize) -> Option<Result<String, Error>>;
-}
-
 fn find_using_split_in_lines<R: Read>(word: &str, lines: &mut Lines<BufReader<R>>, size: usize) -> (bool, u32) {
     let mut index = 0;
     let mut power = (size as f64).log2() as i32;
@@ -212,7 +208,7 @@ fn find_using_bin(word: &str, path: String) -> bool {
     file.seek(SeekFrom::Current(4)).expect("Can't seek");
 
     let mut s = String::new();
-    let mut reader = file.take(4);
+    let mut reader = file.take(8);
     reader.read_to_string(&mut s).expect("Can't read as string");
 
     let h: usize = usize::from_str_radix(&*s, 16).unwrap();
@@ -229,9 +225,44 @@ fn find_using_bin(word: &str, path: String) -> bool {
     res
 }
 
+fn find_using_bin_in_map(word: &str, map: &Mmap, w: usize, h: usize, offset: usize) -> (bool, u32) {
+    let mut power = (h as f64).log2() as i32;
+    let mut level = power;
+    let mut position = 0;
+    let mut counter = 1;
+
+    loop {
+        let a = offset + (position * w);
+        let b = offset + ((position + 1) * w);
+        let s = String::from_utf8(map[a..b].to_vec()).expect("Cannot unwrap");
+
+        let n = &s.trim()[..];
+        if n == "" { return (false, counter); }
+        let index = match n.cmp(word) {
+            Ordering::Greater => { 0 }
+            Ordering::Less => { (1 << power) - 1 }
+            Ordering::Equal => { return (true, counter); }
+        };
+        level -= 1;
+        if h - position - 1 <= 0 { return (false, counter); }
+        position += index + 1;
+        let base = if h - position - 1 > 0 { ((h - position - 1) as f64).log2() as i32 } else { 0 };
+        power = min(level, base);
+        counter += 1;
+    }
+}
+
 fn find_using_mem(word: &str, path: String) -> bool {
-    // not implemented
-    false
+    let file = File::open(path).expect("Can't open file");
+    let map = unsafe { Mmap::map(&file).expect("Can't map file") };
+
+    let mut s = String::from_utf8(map[4..12].to_vec()).unwrap();
+    let h: usize = usize::from_str_radix(&*s, 16).unwrap();
+    s = String::from_utf8(map[17..19].to_vec()).unwrap();
+    let w: usize = usize::from_str_radix(&*s, 16).unwrap();
+
+    let (res, ..) = find_using_bin_in_map(word, &map, w, h, 20);
+    res
 }
 
 fn main() {

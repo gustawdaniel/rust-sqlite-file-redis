@@ -43,3 +43,13 @@ Release
 ```
 time METHOD=bin cargo run --release -- "GGGG" g_2
 ```
+
+Sources:
+
+Publication
+
+https://dl.acm.org/doi/pdf/10.1145/356631.356634
+
+Book
+
+https://edu.anarcho-copy.org/Algorithm/grokking-algorithms-illustrated-programmers-curious.pdf

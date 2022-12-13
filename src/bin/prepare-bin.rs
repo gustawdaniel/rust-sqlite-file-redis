@@ -5,10 +5,10 @@ use std::cmp::Ordering;
 use std::os::unix::fs::FileExt;
 
 fn main() {
-    let FilePath { text, tree, bin, .. } = get_file_patch(None);
-    println!("TX {}", text);
-    println!("TR {}", tree);
-    println!("BI {}", bin);
+    let FilePath { tree, bin, .. } = get_file_patch(None);
+    // println!("TX {}", text);
+    // println!("TR {}", tree);
+    // println!("BI {}", bin);
 
     let file = File::open(tree).expect("Can't read file");
     let reader = BufReader::new(file);
@@ -32,7 +32,7 @@ fn main() {
     }
 
     let bin_file = File::create(bin).expect("Can't create");
-    let h = bin_file.write_at(format!("h=0x{:04x},w=0x{:02x}\n", lines.len(), max_length_word).as_bytes(),0).expect("Cannot write buffer");
+    let h = bin_file.write_at(format!("h=0x{:08x},w=0x{:02x}\n", lines.len(), max_length_word).as_bytes(),0).expect("Cannot write buffer");
 
     let mut next = String::from("");
     for line in lines {

@@ -1,0 +1,43 @@
+#! /bin/sh
+
+testBuildTree() {
+  cargo run --bin prepare-tree
+  wc collins-scrabble-2019.txt | cut -d' ' -f2,4 > wc1
+  wc collins-scrabble-2019-tree.txt | cut -d' ' -f2,4 > wc2
+  RES=$(diff wc1 wc2)
+  EXP=""
+  assertEquals "${EXP}" "${RES}"
+}
+
+testBuildTree5() {
+  cargo run --bin prepare-tree -- 5
+  assertEquals "5" "$(cat 5-tree.meta)"
+}
+
+testBuildBin5() {
+  cargo run --bin prepare-bin -- 5
+  assertEquals "h=0x00000005,w=0x02" "$(head -n 1 5-bin)"
+}
+
+testText() {
+  assertEquals "true" "$(METHOD="text" cargo run -- 5 5 | tail -n 1)"
+  assertEquals "false" "$(METHOD="text" cargo run -- 6 5 | tail -n 1)"
+}
+
+testSplit() {
+  assertEquals "true" "$(METHOD="split" cargo run -- 5 5 | tail -n 1)"
+  assertEquals "false" "$(METHOD="split" cargo run -- 6 5 | tail -n 1)"
+}
+
+testBin() {
+  assertEquals "true" "$(METHOD="bin" cargo run -- 5 5 | tail -n 1)"
+  assertEquals "false" "$(METHOD="bin" cargo run -- 6 5 | tail -n 1)"
+}
+
+testMem() {
+  assertEquals "true" "$(METHOD="mem" cargo run -- 5 5 | tail -n 1)"
+  assertEquals "false" "$(METHOD="mem" cargo run -- 6 5 | tail -n 1)"
+}
+
+# Load shUnit2.
+. /usr/share/shunit2/shunit2

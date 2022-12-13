@@ -28,4 +28,4 @@ jobs:
     - name: Install shunit
       run: sudo apt install -y shunit2
     - name: Test with shunit
-      run: ./build_tree_test.sh
+      run: ./shunit.sh
