@@ -1,21 +1,34 @@
 [package]
-name = "rust-sqlite-file-redis"
+name = "rust_sqlite_file_redis"
 version = "0.1.0"
 edition = "2021"
-default-run = "rust-sqlite-file-redis"
+default-run = "rust_sqlite_file_redis"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 
 [[bin]]
-name = "rust-sqlite-file-redis"
+name = "rust_sqlite_file_redis"
 path = "src/main.rs"
 
 [[bin]]
 name = "prepare-tree"
-test = false
+path = "src/bin/prepare-tree.rs"
+bench = false
+
+[[bin]]
+name = "prepare-file"
+path = "src/bin/prepare-file.rs"
+bench = false
+
+[[bin]]
+name = "prepare-bin"
+path = "src/bin/prepare-bin.rs"
 bench = false
 
 [[example]]
 name = "rs1" # examples/boolean.rs
+
+[profile.release]
+debug = true

@@ -19,8 +19,6 @@ jobs:
       run: cargo build --verbose
     - name: Run tests on main
       run: cargo test --verbose
-    - name: Run tests on prepare-tree
-      run: cargo test --bin prepare-tree
 
   e2e:
     runs-on: ubuntu-latest

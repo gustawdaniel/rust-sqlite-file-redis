@@ -1,18 +1,11 @@
-use std::env;
+use std::{env, usize};
 use std::fs::File;
-use std::io::{self, BufRead, BufReader, Lines, Read};
+use std::io::{self, BufRead, BufReader, Lines, Read, Seek, SeekFrom};
 use std::path::Path;
 use std::string::ToString;
 use std::cmp::{Ordering, min};
-
-// const FILE_PATH: &str = "./5.txt";
-// const FILE_TREE_PATH: &str = "./5-tree.txt";
-
-// const FILE_PATH: &str = "./collins-head.txt";
-// const FILE_TREE_PATH: &str = "./collins-head-tree.txt";
-
-const FILE_PATH: &str = "./collins-scrabble-2019.txt";
-const FILE_TREE_PATH: &str = "./collins-scrabble-2019-tree.txt";
+use std::fmt::Error;
+use rust_sqlite_file_redis::{FilePath, get_file_patch};
 
 #[cfg(test)]
 mod tests {
@@ -20,12 +13,12 @@ mod tests {
 
     #[test]
     fn find_using_text_exists() {
-        assert_eq!(find_using_text("hello","./collins-head.txt"), true);
+        assert_eq!(find_using_text("hello", String::from("./collins-head.txt")), true);
     }
 
     #[test]
     fn find_using_text_non_exists() {
-        assert_eq!(find_using_text("olleh", "./collins-head.txt"), false);
+        assert_eq!(find_using_text("olleh", String::from("./collins-head.txt")), false);
     }
 
     #[test]
@@ -108,9 +101,9 @@ mod tests {
             ("l_12", false, 3),
         ];
 
-        for (word,should_be_correct, should_be_count) in conditions {
+        for (word, should_be_correct, should_be_count) in conditions {
             let text = [
-                "h_8","d_4","b_2","a_1","c_3","f_6","e_5","g_7","j_10","i_9","k_11"
+                "h_8", "d_4", "b_2", "a_1", "c_3", "f_6", "e_5", "g_7", "j_10", "i_9", "k_11"
             ].join("\n");
             let buffer = BufReader::new(text.as_bytes());
             let mut lines = buffer.lines();
@@ -129,7 +122,7 @@ fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
     Ok(io::BufReader::new(file).lines())
 }
 
-fn find_using_text(word: &str, path: &str) -> bool {
+fn find_using_text(word: &str, path: String) -> bool {
     let word = word.to_uppercase();
     if let Ok(lines) = read_lines(path) {
         // Consumes the iterator, returns an (Optional) String
@@ -145,86 +138,116 @@ fn find_using_text(word: &str, path: &str) -> bool {
     false
 }
 
-fn find_using_split_in_lines<R: Read>(word: &str, lines: &mut Lines<BufReader<R>>, size: usize) -> (bool, u32) {
-    // println!("l1 {:?}", size);
-    // println!("l2 {:?}",lines);
+trait NthIterator {
+    fn nth(&self, index: usize) -> Option<Result<String, Error>>;
+}
 
+fn find_using_split_in_lines<R: Read>(word: &str, lines: &mut Lines<BufReader<R>>, size: usize) -> (bool, u32) {
     let mut index = 0;
-    let mut power = (size as f32).log2() as i32;
+    let mut power = (size as f64).log2() as i32;
     let mut level = power;
     let mut position = 0;
     let mut counter = 1;
 
     loop {
         let n = &lines.nth(index).unwrap_or(Ok(String::from(""))).unwrap()[..];
-
-        // println!("n [s={}, i={}, p={}, l={}, pos={}, c={}, n={:?}]", size, index, power,level,position,counter, n);
-
-        if n == "" {
-            return (false, counter);
-        }
-
+        if n == "" { return (false, counter); }
         match n.cmp(word) {
-            Ordering::Less => {
-                index = (1 << power ) - 1;
-                // println!("Too small! i={}", index);
-            }
-            Ordering::Greater => {
-                // println!("Too big!");
-                index = 0;
-            }
-            Ordering::Equal => {
-                // println!("You win!");
-                return (true, counter);
-            }
+            Ordering::Less => { index = (1 << power) - 1; }
+            Ordering::Greater => { index = 0; }
+            Ordering::Equal => { return (true, counter); }
         }
         level -= 1;
-        if size-position-1 <= 0 {
-            return (false, counter);
-        }
-
+        if size - position - 1 <= 0 { return (false, counter); }
         position += index + 1;
-
-        let base = if size - position - 1 > 0 { ((size - position - 1) as f32).log2() as i32 } else { 0 };
-
-        // println!("posi = {}", position);
-        // println!("base {}", base);
-        // println!("level {}", level);
-        power = min(level,base);
-        // println!("power {}", power);
-        // power -= 1;
+        let base = if size - position - 1 > 0 { ((size - position - 1) as f64).log2() as i32 } else { 0 };
+        power = min(level, base);
         counter += 1;
     }
 }
 
-fn find_using_split(word: &str, path: &str) -> bool {
-    let f1 = File::open(path).unwrap();
-    let f2 = File::open(path).unwrap();
-    let b1 = io::BufReader::new(f1);
-    let b2 = io::BufReader::new(f2);
-    let size = b1.lines().count();
-    let mut lines = b2.lines();
+fn find_using_bin_in_file(word: &str, mut file: &File, w: usize, h: usize) -> (bool, u32) {
+    let mut index = 0;
+    let mut power = (h as f64).log2() as i32;
+    let mut level = power;
+    let mut position = 0;
+    let mut counter = 1;
+
+    loop {
+        let mut s = String::new();
+        file.seek(SeekFrom::Current((w * index) as i64)).expect("Can't seek");
+        file.take(w as u64).read_to_string(&mut s).expect("Can't read as string");
+
+        let n = &s.trim()[..];
+        if n == "" { return (false, counter); }
+        match n.cmp(word) {
+            Ordering::Less => { index = (1 << power) - 1; }
+            Ordering::Equal => { return (true, counter); }
+            Ordering::Greater => { index = 0; }
+        }
+        level -= 1;
+        if h - position - 1 <= 0 { return (false, counter); }
+        position += index + 1;
+        let base = if h - position - 1 > 0 { ((h - position - 1) as f64).log2() as i32 } else { 0 };
+        power = min(level, base);
+        counter += 1;
+    }
+}
+
+fn find_using_split(word: &str, path: String, meta: String) -> bool {
+    let f_meta = File::open(meta.clone()).unwrap();
+    let f_data = File::open(path).unwrap();
+    let b_meta = io::BufReader::new(f_meta);
+    let b_data = io::BufReader::new(f_data);
+    let size: usize = b_meta.lines().next().unwrap().expect("can't unwrap").parse().expect("can't find lines size");
+    let mut lines = b_data.lines();
 
     let (res, ..) = find_using_split_in_lines(word, &mut lines, size);
 
     res
 }
 
+fn find_using_bin(word: &str, path: String) -> bool {
+    let mut file = File::open(path).unwrap();
+    file.seek(SeekFrom::Current(4)).expect("Can't seek");
+
+    let mut s = String::new();
+    let mut reader = file.take(4);
+    reader.read_to_string(&mut s).expect("Can't read as string");
+
+    let h: usize = usize::from_str_radix(&*s, 16).unwrap();
+    let mut file = reader.get_ref();
+
+    s = String::new();
+    file.seek(SeekFrom::Current(5)).expect("Can't seek");
+    file.take(2).read_to_string(&mut s).expect("Can't read as string");
+
+    let w: usize = usize::from_str_radix(&*s, 16).unwrap();
+    file.seek(SeekFrom::Current(1)).expect("Can't seek");
+
+    let (res, ..) = find_using_bin_in_file(word, &mut file, w, h);
+    res
+}
+
+fn find_using_mem(word: &str, path: String) -> bool {
+    // not implemented
+    false
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let method = &env::var("METHOD").unwrap_or("file".to_string())[..];
 
-    println!("{:?}", method == "split");
-    println!("{:?}", "split");
+    let FilePath { text: file_path, tree: file_tree_path, bin: file_bin_path, tree_meta } = get_file_patch(Some(2usize));
 
     let res: bool = match method {
-        "text" => find_using_text(args[1].as_str(), FILE_PATH),
-        "split" => find_using_split(args[1].as_str(), FILE_TREE_PATH),
-        _ => find_using_text(args[1].as_str(), FILE_PATH)
+        "text" => find_using_text(args[1].as_str(), file_path),
+        "split" => find_using_split(args[1].as_str(), file_tree_path, tree_meta),
+        "bin" => find_using_bin(args[1].as_str(), file_bin_path),
+        "mem" => find_using_mem(args[1].as_str(), file_bin_path),
+        _ => find_using_text(args[1].as_str(), file_path)
     };
 
-    println!("{:?}", args);
     println!("{:?}", method);
     println!("{:?}", res);
 }

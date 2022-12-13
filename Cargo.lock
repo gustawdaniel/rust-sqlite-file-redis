@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "rust-sqlite-file-redis"
+name = "rust_sqlite_file_redis"
 version = "0.1.0"
