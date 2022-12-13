@@ -42,6 +42,6 @@ jobs:
     - name: Install shunit
       run: sudo apt install -y shunit2 libsqlite3-dev redis-tools
     - name: I can connect with redis here
-      run: redis-cli -h ${REDIS_HOST} ping
+      run: redis-cli -h ${REDIS_HOST} -p 6379 ping
     - name: Test with shunit
       run: ./shunit.sh
