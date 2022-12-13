@@ -27,8 +27,8 @@ testBuildSqlite() {
 
 testBuildRedis() {
   cargo run --bin prepare-redis -- 5
-  assertEquals "1" "$(redis-cli SISMEMBER word:5 5)"
-  assertEquals "0" "$(redis-cli SISMEMBER word:5 6)"
+  assertEquals "1" "$(redis-cli -h "${REDIS_HOST:-127.0.0.1}" SISMEMBER word:5 5)"
+  assertEquals "0" "$(redis-cli -h "${REDIS_HOST:-127.0.0.1}" SISMEMBER word:5 6)"
 }
 
 testText() {

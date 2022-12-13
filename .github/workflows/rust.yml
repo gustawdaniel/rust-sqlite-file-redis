@@ -34,11 +34,14 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+    env:
+      REDIS_HOST: redis
+
     steps:
     - uses: actions/checkout@v3
     - name: Install shunit
       run: sudo apt install -y shunit2 libsqlite3-dev redis-tools
     - name: I can connect with redis here
-      run: redis-cli ping
+      run: redis-cli -h ${REDIS_HOST} ping
     - name: Test with shunit
       run: ./shunit.sh
