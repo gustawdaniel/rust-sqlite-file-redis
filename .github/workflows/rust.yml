@@ -24,30 +24,11 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-
-#    strategy:
-#      matrix:
-#        redis-version: [6]
-#
-#    services:
-#      redis:
-#        image: redis
-#        options: >-
-#          --health-cmd "redis-cli ping"
-#          --health-interval 10s
-#          --health-timeout 5s
-#          --health-retries 5
-
     env:
-      REDIS_HOST: redis
+      REDIS_HOST: 127.0.0.1
 
     steps:
     - uses: actions/checkout@v3
-
-#    - name: Start Redis
-#      uses: supercharge/redis-github-action@1.4.0
-#      with:
-#        redis-version: ${{ matrix.redis-version }}
 
     - id: setup
       uses: shogo82148/actions-setup-redis@v1
@@ -57,7 +38,6 @@ jobs:
 
     - name: I can connect with redis here
       run: redis-cli -h 127.0.0.1 -p 6379 ping
-#      run: redis-cli -h ${REDIS_HOST} -p 6379 ping
 
     - name: Test with shunit
       run: ./shunit.sh
