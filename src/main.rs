@@ -265,17 +265,29 @@ fn find_using_mem(word: &str, path: String) -> bool {
     res
 }
 
+fn find_using_sqlite(_word: &str, _path: String) -> bool {
+    false
+}
+
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let method = &env::var("METHOD").unwrap_or("file".to_string())[..];
 
-    let FilePath { text: file_path, tree: file_tree_path, bin: file_bin_path, tree_meta } = get_file_patch(Some(2usize));
+    let FilePath {
+        text: file_path,
+        tree: file_tree_path,
+        bin: file_bin_path,
+        tree_meta,
+        sqlite: file_sqlite_path
+    } = get_file_patch(Some(2usize));
 
     let res: bool = match method {
         "text" => find_using_text(args[1].as_str(), file_path),
         "split" => find_using_split(args[1].as_str(), file_tree_path, tree_meta),
         "bin" => find_using_bin(args[1].as_str(), file_bin_path),
         "mem" => find_using_mem(args[1].as_str(), file_bin_path),
+        "sqlite" => find_using_sqlite(args[1].as_str(), file_sqlite_path),
         _ => find_using_text(args[1].as_str(), file_path)
     };
 

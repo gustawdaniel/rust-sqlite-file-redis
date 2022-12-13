@@ -8,6 +8,7 @@ default-run = "rust_sqlite_file_redis"
 
 [dependencies]
 memmap = "0.7.0"
+rusqlite = "0.28.0"
 
 [[bin]]
 name = "rust_sqlite_file_redis"
@@ -26,6 +27,11 @@ bench = false
 [[bin]]
 name = "prepare-bin"
 path = "src/bin/prepare-bin.rs"
+bench = false
+
+[[bin]]
+name = "prepare-sqlite"
+path = "src/bin/prepare-sqlite.rs"
 bench = false
 
 [[example]]

@@ -19,6 +19,7 @@ fn default_file_name() {
             tree: String::from("default_file_name-tree.txt"),
             tree_meta: String::from("default_file_name-tree.meta"),
             bin: String::from("default_file_name-bin"),
+            sqlite: String::from("default_file_name.db"),
         });
     }
 }
@@ -32,6 +33,7 @@ fn position_out_of_scope() {
         tree: FILE_BASE_PATCH.to_owned() + "-tree.txt",
         tree_meta: FILE_BASE_PATCH.to_owned() + "-tree.meta",
         bin: FILE_BASE_PATCH.to_owned() + "-bin",
+        sqlite: FILE_BASE_PATCH.to_owned() + ".db",
     });
 }
 
@@ -41,6 +43,7 @@ pub struct FilePath {
     pub tree: String,
     pub tree_meta: String,
     pub bin: String,
+    pub sqlite: String,
 }
 
 impl PartialEq for FilePath {
@@ -59,5 +62,6 @@ pub fn get_file_patch(position: Option<usize>) -> FilePath {
         tree: file_base.to_owned() + "-tree.txt",
         tree_meta: file_base.to_owned() + "-tree.meta",
         bin: file_base.to_owned() + "-bin",
+        sqlite: file_base.to_owned() + ".db",
     }
 }

@@ -44,6 +44,18 @@ Release
 time METHOD=bin cargo run --release -- "GGGG" g_2
 ```
 
+# Sqlite
+
+```
+sudo dnf install sqlite
+```
+
+and
+
+```
+sudo dnf install sqlite-devel
+```
+
 Sources:
 
 Publication

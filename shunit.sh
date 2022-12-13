@@ -19,6 +19,12 @@ testBuildBin5() {
   assertEquals "h=0x00000005,w=0x02" "$(head -n 1 5-bin)"
 }
 
+testBuildSqlite() {
+  cargo run --bin prepare-sqlite -- 5
+  assertEquals "3a" "$(sqlite3 5.db "SELECT * FROM words WHERE word='3a'")"
+  assertEquals "" "$(sqlite3 5.db "SELECT * FROM words WHERE word='6'")"
+}
+
 testText() {
   assertEquals "true" "$(METHOD="text" cargo run -- 5 5 | tail -n 1)"
   assertEquals "false" "$(METHOD="text" cargo run -- 6 5 | tail -n 1)"
